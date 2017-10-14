@@ -1,0 +1,99 @@
+<html >
+	<head>
+	<title> Query Search Engine</title>
+		<script src="http://code.jquery.com/jquery-1.10.2.js"></script>
+		<script src="http://code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
+		<link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+	<style>
+		div.div1{
+			margin-left:450px;margin-right: auto;margin-top:40px;width:600px
+		}
+		h2{
+			margin-left:70px;margin-right: auto;
+		}
+		div.div2{
+			margin-left:20px;margin-top:20px; width:320px;height:160px;
+		}	
+		div.div3{
+			margin-left:150px;
+		}
+			#news_title{
+				margin: 0;
+				font-weight: bold;
+				font-size: 18px;
+				color: blue
+				
+			}
+		
+		#results{
+			
+		margin-left:150px;
+		font-weight: bold;
+		font-size: 16px;
+		}
+		</style>
+		<script>
+			$(document).ready(function(){
+				var a_list=[]
+				$("#keyword").keyup(function(){
+
+         		var name = $("#keyword").val();
+				$.ajax({
+              //type:"GET",
+              url: "http://localhost:8983/solr/myexample/suggest",
+              data: "wt=json&suggest.q="+name,
+              success: function (res) {
+				  var data = JSON.parse(res);
+				  //console.log(data);
+                  var a_terms = data.suggest.suggest[name].suggestions;
+				  var k=0;
+				  var reg = /^[a-z0-9]+$/i;
+				  for(var i=0;i<a_terms.length;i++){
+					  
+					  if(a_terms[i].term.match(reg)){
+					  a_list[k] = a_terms[i].term;
+					  k++;
+					  }
+				  }
+					
+				}
+					   });
+				$("#keyword").autocomplete({
+					
+					source: a_list,
+					minlength :1
+				});
+			});
+				
+			});
+
+			
+
+</script>
+
+</head>
+	<body ng-app="querysearch" ng-controller="search" ng-init="init()">	
+	
+		<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.3/angular.min.js"></script>
+		<script src="querysearch.js"></script>
+	<div class ="div1"><h2>Search Engine</h2>
+		
+		<div class ="div2">
+		<form id ="form1">
+			<div class="ui-widget">
+				<input id ="keyword" ng-model = "query" type ="text" name="keyword" autocomplete=off placeholder="Your Search Query"style="margin-left:15px;margin-top:10px;width:250px;height:20px"></div><br> <br>
+			<input type="radio" ng-model="qopt"  value="solr_results" style="margin-left:15px" ng-checked="true"> Lucene Results
+			<input type="radio" ng-model="qopt" value="pr_results"> PageRank Results
+			<button type="submit" ng-click="sub()" style="margin-left:80px;margin-top:20px">Submit Query</button>
+			<br>
+			</form>
+		</div></div>
+		<p id ="results"></p>
+		<div class ="div3" ng-repeat="res in results" ng-init="ttl = geturl(res.id)">
+		<p id="news_title"><a href = "{{ttl}}" target="_blank" style="text-decoration:none">{{res.title[0]}}</a></p>
+		<a href ="{{ttl}}"  target="_blank" style="color:green">{{ttl}}</a>
+		<br>{{res.id}}<br>{{res.description[0]}}<br><br>	
+		</div>
+		
+	</body>
+</html>
